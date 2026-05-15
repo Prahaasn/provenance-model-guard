@@ -17,7 +17,8 @@
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "test": "vitest run",
-    "smoke": "tsx scripts/smoke.ts"
+    "smoke": "tsx scripts/smoke.ts",
+    "stress": "tsx scripts/stress.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",

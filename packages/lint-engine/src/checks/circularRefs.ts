@@ -28,6 +28,18 @@ function extractRefs(formula: string): string[] {
   return refs;
 }
 
+/**
+ * Strip OFFSET(REF, ...) calls. OFFSET's first argument is a base address, but
+ * the cell it actually evaluates to is shifted by the (row, col) args — it is
+ * NOT a direct dependency on the base cell. A formula like `=OFFSET(A1,$D$1,0)`
+ * is therefore not a self-loop on A1 even when written inside A1 itself. The
+ * "real" target is dynamic and out of scope for a static dependency graph.
+ */
+function stripOffsetCalls(formula: string): string {
+  // Match OFFSET( ... ) — non-greedy, no nesting support needed for our use.
+  return formula.replace(/OFFSET\s*\([^)]*\)/gi, '');
+}
+
 function detectCycles(sheet: ParsedSheet): string[][] {
   // Build adjacency list of formula-cell -> referenced cells (within the sheet only).
   const graph = new Map<string, string[]>();
@@ -37,7 +49,9 @@ function detectCycles(sheet: ParsedSheet): string[][] {
       // Strip cross-sheet refs entirely (including their cell address) before
       // extracting intra-sheet refs. This prevents the row digits of cross-sheet
       // refs from being mistaken for local refs (e.g. on `'Revenue Build'!B3`).
-      const stripped = stripCrossSheetRefs(cell.formula);
+      let stripped = stripCrossSheetRefs(cell.formula);
+      // Also strip OFFSET(...) — its first arg is a base, not a dependency.
+      stripped = stripOffsetCalls(stripped);
       const refs = extractRefs(stripped);
       graph.set(cell.address, refs);
     }

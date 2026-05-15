@@ -35,7 +35,11 @@ export const formulaConsistency: CheckDefinition = {
         if (cur.length > 0) runs.push(cur);
 
         for (const formulaCells of runs) {
-          if (formulaCells.length < 3) continue;
+          // Require at least 4 formula cells in the run — fewer than that is
+          // not enough signal to call any one of them "the outlier" (a row
+          // with 3 formulas where 2 match each other is just as likely a
+          // legitimate header + subtotal layout).
+          if (formulaCells.length < 4) continue;
           const patterns = new Map<string, number>();
           const cellToPattern = new Map<string, string>();
           for (const cell of formulaCells) {
@@ -53,10 +57,29 @@ export const formulaConsistency: CheckDefinition = {
               dominantCount = count;
             }
           }
-          if (dominantCount < 2 || !dominant) continue;
+          if (!dominant) continue;
+          if (dominantCount < 3) continue;
+          // Require the dominant pattern to cover a clear supermajority. Real-
+          // world 3-statement models routinely split a row into a "historical"
+          // half (e.g. =BS!X22+X24) and a "forecast" half (=X6+X7). Both halves
+          // are legitimately different formulas — flagging one half as the
+          // outlier of the other is noise. Bumping the bar to 80% means we
+          // only flag cells that are truly isolated within a homogeneous run.
+          if (dominantCount / formulaCells.length < 0.7) continue;
+          // Also: if the second-most-common pattern accounts for >=2 cells AND
+          // >=20% of the run, treat it as a deliberate sub-section rather than
+          // an outlier — skip flagging it.
+          let secondCount = 0;
+          for (const [pat, count] of patterns) {
+            if (pat !== dominant && count > secondCount) secondCount = count;
+          }
+          const secondShare = secondCount / formulaCells.length;
           for (const cell of formulaCells) {
             const pat = cellToPattern.get(cell.address);
             if (pat !== dominant) {
+              // Skip cells that belong to a "second cluster" (deliberate split)
+              const cellPatCount = patterns.get(pat ?? '') ?? 0;
+              if (cellPatCount >= 2 && secondShare >= 0.2) continue;
               issues.push({
                 checkId: 'formula-consistency',
                 severity: 'HIGH',

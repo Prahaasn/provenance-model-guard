@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import {
   ALL_CHECKS,
   parseWorkbook,
@@ -93,13 +93,54 @@ async function readWorkbookFromDisk(filePath: string) {
   if (!filePath || typeof filePath !== 'string') {
     throw new Error('filePath must be a non-empty string (absolute path).');
   }
+
+  // Verify the path is a regular file (not a directory, socket, etc.).
+  let fileStats: Awaited<ReturnType<typeof stat>>;
+  try {
+    fileStats = await stat(filePath);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(`Failed to read file at "${filePath}": ${msg}`);
+  }
+  if (!fileStats.isFile()) {
+    throw new Error(
+      `Failed to read file at "${filePath}": path is not a regular file ` +
+        `(it may be a directory or special file).`
+    );
+  }
+
   let buf: Buffer;
   try {
     buf = await readFile(filePath);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    throw new Error(`Failed to read file at ${filePath}: ${msg}`);
+    throw new Error(`Failed to read file at "${filePath}": ${msg}`);
   }
+
+  // Reject obviously-wrong files early before handing to the xlsx parser.
+  // The xlsx format is a ZIP archive; all valid .xlsx files start with the
+  // ZIP local-file-header magic bytes PK\x03\x04 (0x50 0x4B 0x03 0x04).
+  // The xlsx library silently returns a synthetic empty workbook for garbage
+  // input, which would produce a misleading "Score: 94/100" result.
+  if (buf.length === 0) {
+    throw new Error(
+      `File "${filePath}" is empty (0 bytes). Please provide a valid .xlsx workbook.`
+    );
+  }
+  const PK_MAGIC = [0x50, 0x4b, 0x03, 0x04] as const;
+  if (
+    buf.length < 4 ||
+    buf[0] !== PK_MAGIC[0] ||
+    buf[1] !== PK_MAGIC[1] ||
+    buf[2] !== PK_MAGIC[2] ||
+    buf[3] !== PK_MAGIC[3]
+  ) {
+    throw new Error(
+      `File "${filePath}" does not appear to be a valid .xlsx workbook ` +
+        `(missing ZIP/OOXML magic bytes). Only .xlsx files are supported.`
+    );
+  }
+
   // Buffer is a Uint8Array — parseWorkbook accepts ArrayBuffer | Uint8Array.
   return parseWorkbook(buf, { fileName: filePath });
 }

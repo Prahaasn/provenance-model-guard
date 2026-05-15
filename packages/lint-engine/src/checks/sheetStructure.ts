@@ -7,16 +7,29 @@ interface Category {
 }
 
 const CATEGORIES: Category[] = [
-  { key: 'assumptions', label: 'assumption/input/driver', pattern: /assumption|input|driver/i },
+  {
+    key: 'assumptions',
+    label: 'assumption/input/driver/wacc',
+    // WACC, schedules, and "data sheet" tabs all functionally serve the role
+    // of a driver/input block in real-world IB models. A separate "Inputs" tab
+    // is the FAST convention; everyone else mixes it in differently.
+    pattern:
+      /assumption|input|driver|wacc|schedule|data\s*sheet|cover|control|toggle|params?/i,
+  },
   {
     key: 'outputs',
-    label: 'output/summary/returns/valuation',
-    pattern: /output|summary|returns|valuation/i,
+    label: 'output/summary/returns/valuation/dashboard',
+    pattern:
+      /output|summary|return|valuation|dashboard|result|fcff|fcfe|free\s*cash|charts?/i,
   },
   {
     key: 'model',
-    label: 'dcf/lbo/comps/model/projection',
-    pattern: /dcf|lbo|comps|model|projection/i,
+    label: 'dcf/lbo/comps/model/projection/financial-statements',
+    // Three-statement models (Income Statement / Balance Sheet / Cash Flow)
+    // are themselves the "model" — so are P&L, BS, CF abbreviations, and any
+    // sheet hinting at projections, financials, or operating builds.
+    pattern:
+      /dcf|lbo|comps?|model|projection|p\s*&\s*l|p&l|income\s*statement|balance\s*sheet|cash\s*flow|financials?|operating|revenue|capex|debt|three.?statement|3.?statement/i,
   },
 ];
 
