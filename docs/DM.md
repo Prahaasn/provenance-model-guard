@@ -6,7 +6,7 @@ Tuna — built a diff-aware Excel lint engine and wrapped it as an MCP server th
 
 Not a competing product — it is a building block that slots into the Provenance review queue.
 
-Prototype, one day of work. Live demo: [DEMO-URL] (drop two .xlsx files into diff mode). Code: [GITHUB-URL].
+Prototype, one day of work. Live demo: https://provenance-model-guard.vercel.app (drop two .xlsx files into diff mode). Code: https://github.com/Prahaasn/provenance-model-guard.
 
 Happy to walk through it on a 15-minute call if useful.
 

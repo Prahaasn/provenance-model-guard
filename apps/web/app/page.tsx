@@ -26,7 +26,7 @@ export default function HomePage() {
               MCP server
             </a>
             <a
-              href="https://github.com"
+              href="https://github.com/Prahaasn/provenance-model-guard"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 rounded-md border border-border-subtle bg-surface px-2 py-1 transition-colors hover:border-border-accent hover:text-text-primary"
