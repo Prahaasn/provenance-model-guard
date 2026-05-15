@@ -1,0 +1,34 @@
+{
+  "name": "@pmg/mcp-server",
+  "version": "0.1.0",
+  "description": "Model Context Protocol server for diff-aware Excel model lint (Provenance Model Guard)",
+  "type": "module",
+  "bin": {
+    "pmg-mcp": "./dist/index.js"
+  },
+  "main": "./dist/server.js",
+  "types": "./dist/server.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "smoke": "tsx scripts/smoke.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@pmg/lint-engine": "*",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0",
+    "xlsx": "^0.18.5"
+  }
+}

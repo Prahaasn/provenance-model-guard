@@ -1,0 +1,17 @@
+{
+  "name": "provenance-model-guard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP lint server + web demo for pre-submission Excel model health checks",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "dev:web": "npm run dev -w @pmg/web",
+    "dev:mcp": "npm run dev -w @pmg/mcp-server",
+    "samples": "npm run generate -w @pmg/samples"
+  }
+}
